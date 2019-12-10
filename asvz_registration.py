@@ -1,63 +1,144 @@
 #!/usr/bin/python3.6
 
-import requests as re
-# import pprint
-# import webbrowser
-# import pyautogui
-# import time
+import pandas as pd
+from time import sleep
+import datetime
 import dateutil.parser
 
-login_url = 'https://auth.asvz.ch/account/login'
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 
-# Find button to ETH Login via SwitchAai
-# Enter email to id='username' and password to id='password'
 
-# Continue finding the right lession
+def get_credentials() -> list:
+    from getpass import getpass 
+    print('Enter data of the user to register!')
+    usr = input('Enter user: ')
+    pwd = getpass('Enter password: ')
+    return [usr, pwd]
 
-# Preferred weekday
-# Return the day of the week as an integer, where Monday is 0 and Sunday is 6.
-preferredWeekday = 2  # type: int
 
-# preferred time as ['hh','mm','ss']
-preferredTime= ['18', '30', '00']
+def check_asvz_login(_driver, _usr, _pwd):
+    # ASVZ login
+    asvz_login_url = 'https://auth.asvz.ch/account/login'
+    _driver.get(asvz_login_url)
+    switchAai_button = _driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]') 
+    switchAai_button.click()
+    # This can be skipped if the university is saved in the browser's chache
+    if _driver.current_url.startswith('https://wayf.switch.ch/'):
+        # Select institution to get to ETH Login
+        input_box = _driver.find_element_by_id('userIdPSelection_iddtext')
+        input_box.send_keys('ETH Zurich')
+        send_button = _driver.find_element_by_name('Select')
+        send_button.click()
+    user_box = _driver.find_element_by_id('username')
+    user_box.send_keys(_usr)
+    password_box = _driver.find_element_by_id('password')
+    password_box.send_keys(_pwd)
+    login_button = _driver.find_element_by_id('LoginButtonText')
+    login_button.click()
+    # TODO implement correctness check
 
-# preferred Instructor
-preferredInstructor: str = 'Baumgartner, Rico' # 'Surname, Name'
 
-preferred_location = None
+def get_sportfahrplan(entries = 2000, filter=None) -> pd.DataFrame:
+    import requests as re
+    # Specific search for Cycling classes
+    request = re.get('https://asvz.ch/asvz_api/event_search?_format=json&limit={e:d}'.format(e=entries))
+    results = request.json()['results']
+    _df = pd.DataFrame(results)
+    # Just export lessions which need a registration and are not cancelled
+    _df = _df[_df.cancelled == False]
+    _df = _df[_df.oe_from_date.notna()]
+    _df.oe_from_date = _df.oe_from_date.apply(lambda x: dateutil.parser.parse(x))
+    _df.to_date = _df.to_date.apply(lambda x: dateutil.parser.parse(x))
+    if filter:
+        _df = filter_sportfahrplan(_df, filter)   
+    return _df.sort_values(by='oe_from_date', ascending=True)
 
-# Dictionary containing the features of the preferred lession
-preferred_lesson = {
-    'weekday': None,
-    'time': None,
-    'instructor': None
-}
 
-# Load the lesson schedule "Sportfahrplan" and filter of the desired lesson
-a = re.get('https://asvz.ch/asvz_api/event_search?_format=json&limit=60&f[0]=sport:45645&availability=1&f[1]=facility:'
-           '45594&selected=f0:checkbox_availability:f1')
-text = a.json()
+def filter_sportfahrplan(_df, _filter) -> pd.DataFrame:
+    if 'title' in _filter.keys():
+        _df = _df[_df.title == _filter['title']]
 
-# print(type(text))
-# print(text)
-# pp = pprint.PrettyPrinter(indent=4)
-# pp.pprint(text)
-# pp.pprint(text["results"][0]["url"])
+    if 'sport' in _filter.keys():
+        _df = _df[_df.sport_name == _filter['sport']]
 
-for i, iDetails in enumerate(text['results']):
-    if iDetails['instructor_name'] == [preferredInstructor]:
-        dateTime = dateutil.parser.parse(iDetails['from_date'])
-        print(dateTime)
+    if 'weekday' in _filter.keys():
+        _df = _df[_df.to_date.apply(lambda x: x.weekday == _filter['weekday'])]
 
-# url = text["results"][0]["url"]
-#
-# course_re = re.get(url)
-# print(course_re.text)
-# course = course_re.json()
+    if 'time' in _filter.keys():
+        _df = _df[_df.to_date.apply(lambda x: x.time() == _filter['time'])]
 
-# pp.pprint(course)
-# webbrowser.open_new_tab(url)
-#
-# time.sleep(3)
-#
-# pyautogui.click(500, 300)
+    if 'instructor' in _filter.keys():
+        _df = _df[_df.instructor_name.notna()]
+        _df[_df.instructor_name.apply(lambda x: _filter['instructor'] == x)]  
+
+    if 'location' in _filter.keys():
+        _df = _df[_df.location == _filter['location']]
+    return _df
+
+
+if __name__ == '__main__':
+    # Enter username and password of the user to register
+    # TODO Check for correctness of the credentials
+    usr, pwd = get_credentials()
+    # Preferred lession: Dictionary with filters
+    preferred_lession = {
+        # 'title': '30min HIT-Training',  # Title
+        'sport': 'Cycling Class',  # Sport
+        'weekday': 1,  # Monday: 0, Tuesday: 1, ..., Sunday: 6
+        'time': datetime.time(18, 00),  # datetime.time(h, m)
+        'instructor': ['Zbinden, Sofia'], # ['Surname, Name']
+        'location': 'Sport Center Polyterrasse' # Location
+    }
+
+    # Load the lesson schedule "Sportfahrplan" and filter of the desired lesson
+    sportfahrplan = get_sportfahrplan(filter=preferred_lession)
+    
+    # find the next lession you want to register for
+    next_lession = sportfahrplan.iloc[0]
+
+    registration_time = next_lession.oe_from_date.astimezone(tz=datetime.timezone.utc)
+    time_now = datetime.datetime.now().astimezone(tz=datetime.timezone.utc)
+    waiting_period = (registration_time - time_now).total_seconds()
+
+    # Wait until 5 seconds before the registration opens
+    sleep(waiting_period - 5)
+    # time_start = datetime.datetime.now()
+    # TODO Open browser in headless mode
+    # driver_options = Options()
+    # driver_options.headless = True
+    driver = webdriver.Firefox()
+    
+    driver.get(next_lession.url)
+    login_button = login_button = driver.find_element_by_xpath('//*[@class="btn btn-default ng-star-inserted"]')
+    if login_button.text == "LOGIN":
+        login_button.click()
+        # Select identification via Switch Aai
+        switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]') 
+        switchAai_button.click()
+        # Skip if the selection of saved in the browser's chache
+        if driver.current_url.startswith('https://wayf.switch.ch/'):
+            # Select institution to get to ETH Login
+            input_box = driver.find_element_by_id('userIdPSelection_iddtext')
+            input_box.send_keys('ETH Zurich')
+            # remember_checkbox = driver.find_element_by_id('rememberForSession')
+            # remember_checkbox.click()
+            send_button = driver.find_element_by_name('Select')
+            send_button.click()
+        # Enter credentials
+        user_box = driver.find_element_by_id('username')
+        user_box.send_keys(usr)
+        password_box = driver.find_element_by_id('password')
+        password_box.send_keys(pwd)
+        login_button = driver.find_element_by_id('LoginButtonText')
+        login_button.click()
+
+    # time_end = datetime.datetime.now()
+    # delta_time = time_end - time_start
+    # print('The login took approx. {sec:.2f} seconds.'.format(sec=delta_time.total_seconds()))
+    
+    # Finally, register for the lession
+    lession_login_button = driver.find_element_by_id('btnRegister')
+    lession_login_button.click()
+    # Quit browser
+    # driver.quit()
