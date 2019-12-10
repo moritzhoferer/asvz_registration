@@ -102,12 +102,12 @@ if __name__ == '__main__':
     waiting_period = (registration_time - time_now).total_seconds()
 
     # Wait until 5 seconds before the registration opens
-    # sleep(waiting_period - 5)
+    sleep(waiting_period - 5)
     # time_start = datetime.datetime.now()
-    # TODO Open browser in headless mode
-    # driver_options = Options()
-    # driver_options.headless = True
-    driver = webdriver.Firefox()
+    # TODO Define function to open browser def open_browser(headless=False)
+    driver_options = Options()
+    driver_options.add_argument('-headless')
+    driver = webdriver.Firefox(executable_path='geckodriver', options=driver_options)
     
     driver.get(next_lesson.url)
     login_button = login_button = driver.find_element_by_xpath('//*[@class="btn btn-default ng-star-inserted"]')
@@ -140,5 +140,5 @@ if __name__ == '__main__':
     # Finally, register for the lesson
     lesson_login_button = driver.find_element_by_id('btnRegister')
     lesson_login_button.click()
-    # Quit browser
+    # # Quit browser
     driver.quit()
