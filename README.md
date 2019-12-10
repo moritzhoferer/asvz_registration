@@ -1,3 +1,3 @@
 # Automatic ASVZ registration
 
-This a tool for automatic registration to your favorite ASVZ lession. This is especially helpful for highly demanded lessions.
+This tool allows you to automatically register for your favorite ASVZ lession when the registration period opens. This is especially helpful for highly demanded lessons, like Cycling Classes.

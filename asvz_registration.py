@@ -45,7 +45,7 @@ def get_sportfahrplan(entries = 2000, filter=None) -> pd.DataFrame:
     request = re.get('https://asvz.ch/asvz_api/event_search?_format=json&limit={e:d}'.format(e=entries))
     results = request.json()['results']
     _df = pd.DataFrame(results)
-    # Just export lessions which need a registration and are not cancelled
+    # Just export lessons which need a registration and are not cancelled
     _df = _df[_df.cancelled == False]
     _df = _df[_df.oe_from_date.notna()]
     _df.oe_from_date = _df.oe_from_date.apply(lambda x: dateutil.parser.parse(x))
@@ -81,8 +81,8 @@ if __name__ == '__main__':
     # Enter username and password of the user to register
     # TODO Check for correctness of the credentials
     usr, pwd = get_credentials()
-    # Preferred lession: Dictionary with filters
-    preferred_lession = {
+    # Preferred lesson: Dictionary with filters
+    preferred_lesson = {
         # 'title': '30min HIT-Training',  # Title
         'sport': 'Cycling Class',  # Sport
         'weekday': 1,  # Monday: 0, Tuesday: 1, ..., Sunday: 6
@@ -92,24 +92,24 @@ if __name__ == '__main__':
     }
 
     # Load the lesson schedule "Sportfahrplan" and filter of the desired lesson
-    sportfahrplan = get_sportfahrplan(filter=preferred_lession)
+    sportfahrplan = get_sportfahrplan(filter=preferred_lesson)
     
-    # find the next lession you want to register for
-    next_lession = sportfahrplan.iloc[0]
+    # find the next lesson you want to register for
+    next_lesson = sportfahrplan.iloc[0]
 
-    registration_time = next_lession.oe_from_date.astimezone(tz=datetime.timezone.utc)
+    registration_time = next_lesson.oe_from_date.astimezone(tz=datetime.timezone.utc)
     time_now = datetime.datetime.now().astimezone(tz=datetime.timezone.utc)
     waiting_period = (registration_time - time_now).total_seconds()
 
     # Wait until 5 seconds before the registration opens
-    sleep(waiting_period - 5)
+    # sleep(waiting_period - 5)
     # time_start = datetime.datetime.now()
     # TODO Open browser in headless mode
     # driver_options = Options()
     # driver_options.headless = True
     driver = webdriver.Firefox()
     
-    driver.get(next_lession.url)
+    driver.get(next_lesson.url)
     login_button = login_button = driver.find_element_by_xpath('//*[@class="btn btn-default ng-star-inserted"]')
     if login_button.text == "LOGIN":
         login_button.click()
@@ -137,8 +137,8 @@ if __name__ == '__main__':
     # delta_time = time_end - time_start
     # print('The login took approx. {sec:.2f} seconds.'.format(sec=delta_time.total_seconds()))
     
-    # Finally, register for the lession
-    lession_login_button = driver.find_element_by_id('btnRegister')
-    lession_login_button.click()
+    # Finally, register for the lesson
+    lesson_login_button = driver.find_element_by_id('btnRegister')
+    lesson_login_button.click()
     # Quit browser
-    # driver.quit()
+    driver.quit()
