@@ -1,2 +1,4 @@
-credentials.py
-geckodriver.log
+__pycache__
+*.log
+*.csv
+*.csv#
