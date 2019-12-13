@@ -1,6 +1,8 @@
 #!/usr/bin/python3.6
 
+import sys
 import pandas as pd
+import json
 from time import sleep
 import datetime
 import dateutil.parser
@@ -15,6 +17,10 @@ def get_credentials() -> list:
     usr = input('Enter user: ')
     pwd = getpass('Enter password: ')
     return [usr, pwd]
+
+
+# TODO Function to check credentials
+# def check_credentials(usr, pwd) -> bool:
 
 
 def check_asvz_login(_driver, _usr, _pwd):
@@ -57,24 +63,53 @@ def get_sportfahrplan(entries = 2000, filter=None) -> pd.DataFrame:
 
 def filter_sportfahrplan(_df, _filter) -> pd.DataFrame:
     if 'title' in _filter.keys():
-        _df = _df[_df.title == _filter['title']]
+        if _filter['title']:
+            _df = _df[_df.title == _filter['title']]
 
     if 'sport' in _filter.keys():
-        _df = _df[_df.sport_name == _filter['sport']]
+        if _filter['sport']:
+            _df = _df[_df.sport_name == _filter['sport']]
 
     if 'weekday' in _filter.keys():
-        _df = _df[_df.to_date.apply(lambda x: x.weekday == _filter['weekday'])]
+        if _filter['weekday']:
+            _df = _df[_df.to_date.apply(lambda x: x.weekday == _filter['weekday'])]
 
     if 'time' in _filter.keys():
-        _df = _df[_df.to_date.apply(lambda x: x.time() == _filter['time'])]
+        if _filter['time']:
+            _df = _df[_df.to_date.apply(lambda x: x.time() == _filter['time'])]
 
     if 'instructor' in _filter.keys():
-        _df = _df[_df.instructor_name.notna()]
-        _df[_df.instructor_name.apply(lambda x: _filter['instructor'] == x)]  
+        if _filter['instructor']:
+            _df = _df[_df.instructor_name.notna()]
+            _df = _df[_df.instructor_name.apply(lambda x: x == _filter['instructor'])]  
 
     if 'location' in _filter.keys():
-        _df = _df[_df.location == _filter['location']]
+        if _filter['location']:
+            _df = _df[_df.location == _filter['location']]
     return _df
+
+
+def get_lesson_info(s: pd.Series):
+    print(s.sport_name)
+    print(s.to_date)
+    print(s.instructor_name)
+    print(s.location)
+
+
+def get_time_until(t) -> int:
+    time_now = datetime.datetime.now().astimezone(tz=datetime.timezone.utc)
+    waiting_period = (t - time_now).total_seconds()
+    return waiting_period
+
+
+def load_preferences(file_name: str):
+    with open(file_name, 'r') as file:
+        dict_ = json.load(file)
+    if 'time' in dict_.keys():
+        if dict_['time']:
+            hour, minute = dict_['time'].split(':')
+            dict_['time'] = datetime.time(int(hour), int(minute))
+    return dict_
 
 
 if __name__ == '__main__':
@@ -82,29 +117,28 @@ if __name__ == '__main__':
     # TODO Check for correctness of the credentials
     usr, pwd = get_credentials()
     # Preferred lesson: Dictionary with filters
-    preferred_lesson = {
-        # 'title': '30min HIT-Training',  # Title
-        'sport': 'Cycling Class',  # Sport
-        'weekday': 1,  # Monday: 0, Tuesday: 1, ..., Sunday: 6
-        'time': datetime.time(18, 00),  # datetime.time(h, m)
-        'instructor': ['Zbinden, Sofia'], # ['Surname, Name']
-        'location': 'Sport Center Polyterrasse' # Location
-    }
+    if len(sys.argv) > 1:
+        preferred_lesson = load_preferences(sys.argv[1])
+    else:
+        preferred_lesson = {}
 
     # Load the lesson schedule "Sportfahrplan" and filter of the desired lesson
     sportfahrplan = get_sportfahrplan(filter=preferred_lesson)
-    
     # find the next lesson you want to register for
     next_lesson = sportfahrplan.iloc[0]
-
+    get_lesson_info(next_lesson)
     registration_time = next_lesson.oe_from_date.astimezone(tz=datetime.timezone.utc)
-    time_now = datetime.datetime.now().astimezone(tz=datetime.timezone.utc)
-    waiting_period = (registration_time - time_now).total_seconds()
 
-    # Wait until 5 seconds before the registration opens
-    sleep(waiting_period - 5)
-    # time_start = datetime.datetime.now()
-    # TODO Define function to open browser def open_browser(headless=False)
+    # Wait until 1 minute before the registration opens to login
+    waiting_period = get_time_until(registration_time) - 60
+    if waiting_period > 0:
+        print(
+            'Waiting for {h:.0f}h {m:.0f}m {s:.0f}s until login'
+            .format(h=waiting_period/60//60, m=waiting_period/60%60, s=waiting_period%60)
+        )
+        sleep(waiting_period)
+    
+    # Open browser in headless mode
     driver_options = Options()
     driver_options.add_argument('-headless')
     driver = webdriver.Firefox(executable_path='geckodriver', options=driver_options)
@@ -133,10 +167,11 @@ if __name__ == '__main__':
         login_button = driver.find_element_by_id('LoginButtonText')
         login_button.click()
 
-    # time_end = datetime.datetime.now()
-    # delta_time = time_end - time_start
     # print('The login took approx. {sec:.2f} seconds.'.format(sec=delta_time.total_seconds()))
-    
+    waiting_period = get_time_until(registration_time) + 2
+    if waiting_period > 0:
+        print('Wait for {sec:.1f} minutes until registration'.format(sec=waiting_period))
+        sleep(waiting_period)
     # Finally, register for the lesson
     lesson_login_button = driver.find_element_by_id('btnRegister')
     lesson_login_button.click()
