@@ -21,7 +21,7 @@ def open_Firefox(headless=True):
 def get_credentials() -> list:
     from getpass import getpass 
     print('Enter data of the user to register!')
-    usr = input('Enter user: ')
+    usr = input('Enter username: ')
     pwd = getpass('Enter password: ')
     return [usr, pwd]
 
