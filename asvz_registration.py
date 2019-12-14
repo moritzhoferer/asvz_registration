@@ -168,12 +168,13 @@ if __name__ == '__main__':
     next_lesson = sportfahrplan.iloc[0]
     get_lesson_info(next_lesson)
     registration_time = next_lesson.oe_from_date.astimezone(tz=datetime.timezone.utc)
+    del sportfahrplan
 
     # Wait until 1 minute before the registration opens to login
     waiting_period = get_time_until(registration_time) - 60
     if waiting_period > 0:
         print(
-            'Waiting for {h:.0f}h {m:.0f}m {s:.0f}s until login'
+            'Wait for {h:.0f}h {m:.0f}m {s:.0f}s until login'
             .format(h=waiting_period/60//60, m=waiting_period/60%60, s=waiting_period%60)
         )
         sleep(waiting_period)
