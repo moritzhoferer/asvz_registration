@@ -68,6 +68,19 @@ def get_sportfahrplan(entries = 2000, filter=None) -> pd.DataFrame:
     return _df.sort_values(by='oe_from_date', ascending=True)
 
 
+def get_next_lesson(file_path: str = None):
+    # Preferred lesson: Dictionary with filters
+    if file_path:
+        preferred_lesson = load_preferences(sys.argv[1])
+    else:
+        preferred_lesson = {}
+    # Load the lesson schedule "Sportfahrplan" and filter of the desired lesson
+    sportfahrplan = get_sportfahrplan(filter=preferred_lesson)
+    # find the next lesson with free places you want to register for
+    sportfahrplan = sportfahrplan[sportfahrplan.places_free > 0]
+    return sportfahrplan.iloc[0]
+
+
 def filter_sportfahrplan(_df, _filter) -> pd.DataFrame:
     if 'title' in _filter.keys():
         if _filter['title']:
@@ -135,7 +148,7 @@ if __name__ == '__main__':
     switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]') 
     switchAai_button.click()
 
-    # Skip if the selection of saved in the browser's chache
+    # Skip if the selection of the institution is saved in the browser's chache
     if driver.current_url.startswith('https://wayf.switch.ch/'):
         # Select institution to get to ETH Login
         input_box = driver.find_element_by_id('userIdPSelection_iddtext')
@@ -146,7 +159,6 @@ if __name__ == '__main__':
     while True:
         # Enter username and password of the user to register
         usr, pwd = get_credentials()
-        
         # Enter credentials
         user_box = driver.find_element_by_id('username')
         user_box.clear()
@@ -164,20 +176,12 @@ if __name__ == '__main__':
             driver.quit()
             break
 
-    # Preferred lesson: Dictionary with filters
-    if len(sys.argv) > 1:
-        preferred_lesson = load_preferences(sys.argv[1])
-    else:
-        preferred_lesson = {}
-
-    # Load the lesson schedule "Sportfahrplan" and filter of the desired lesson
-    sportfahrplan = get_sportfahrplan(filter=preferred_lesson)
-    # find the next lesson with free places you want to register for
-    sportfahrplan = sportfahrplan[sportfahrplan.places_free > 0]
-    next_lesson = sportfahrplan.iloc[0]
+    try:
+        next_lesson = get_next_lesson(sys.argv[1])
+    except IndexError:
+        next_lesson = get_next_lesson()
     get_lesson_info(next_lesson)
     registration_time = next_lesson.oe_from_date.astimezone(tz=datetime.timezone.utc)
-    del sportfahrplan
 
     # Wait until 1 minute before the registration opens to login
     waiting_period = get_time_until(registration_time) - 60
