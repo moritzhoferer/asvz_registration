@@ -142,7 +142,12 @@ def load_preferences(file_name: str):
     return dict_
 
 
-if __name__ == '__main__':    
+# TODO def main():
+
+
+if __name__ == '__main__':
+    # TODO Store password using bcrypt: http://zetcode.com/python/bcrypt/
+    # TODO Facilitate code structure
     driver = open_Firefox()
     driver.get('https://auth.asvz.ch/account/login')
     switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]') 
@@ -184,6 +189,7 @@ if __name__ == '__main__':
     registration_time = next_lesson.oe_from_date.astimezone(tz=datetime.timezone.utc)
 
     # Wait until 1 minute before the registration opens to login
+    # TODO def wait(waiting_period, for_what=None)
     waiting_period = get_time_until(registration_time) - 60
     if waiting_period > 0:
         print(
@@ -192,6 +198,7 @@ if __name__ == '__main__':
         )
         sleep(waiting_period)
     
+    # TODO def register_for_lession(url, usr, pwd)
     # Open browser in headless mode
     driver_options = Options()
     driver_options.add_argument('-headless')
@@ -209,8 +216,6 @@ if __name__ == '__main__':
             # Select institution to get to ETH Login
             input_box = driver.find_element_by_id('userIdPSelection_iddtext')
             input_box.send_keys('ETH Zurich')
-            # remember_checkbox = driver.find_element_by_id('rememberForSession')
-            # remember_checkbox.click()
             send_button = driver.find_element_by_name('Select')
             send_button.click()
         # Enter credentials
