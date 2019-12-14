@@ -97,11 +97,20 @@ def filter_sportfahrplan(_df, _filter) -> pd.DataFrame:
 
 
 def get_lesson_info(s: pd.Series):
-    # TODO Bring this output in a nice format!
-    print(s.sport_name)
-    print(s.to_date)
-    print(s.instructor_name)
-    print(s.location)
+    string = '{sport:s} with {instr:s} on {d:d}.{m:d}.{y:d} at {hour:2d}:{minute:02d}h at {loc:s}.'
+    sport = s.sport_name
+    instructor = ' '
+    for name in [i.split(', ')[1] for i in s.instructor_name]:
+        instructor += name + '& '
+    instructor = instructor[1:-2]
+    location = s.location
+    day = s.to_date.day
+    month = s.to_date.month
+    year = s.to_date.year
+    hour = s.to_date.hour
+    minute = s.to_date.minute
+    print(string.format(sport=sport, instr=instructor, d=day, m=month, y=year,
+                        hour=hour, minute=minute, loc=location))
 
 
 def get_time_until(t) -> int:
@@ -185,7 +194,7 @@ if __name__ == '__main__':
     driver = webdriver.Firefox(executable_path='geckodriver', options=driver_options)
     
     driver.get(next_lesson.url)
-    login_button = login_button = driver.find_element_by_xpath('//*[@class="btn btn-default ng-star-inserted"]')
+    login_button = driver.find_element_by_xpath('//*[@class="btn btn-default ng-star-inserted"]')
     if login_button.text == "LOGIN":
         login_button.click()
         # Select identification via Switch Aai
