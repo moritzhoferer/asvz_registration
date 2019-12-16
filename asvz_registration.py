@@ -66,7 +66,7 @@ def get_sportfahrplan(entries = 2000, filter=None) -> pd.DataFrame:
     # Just export lessons which need a registration and are not cancelled
     _df = _df[_df.cancelled == False]
     _df = _df[_df.oe_enabled]
-    # Format time to CET
+    # Format relevant times to CET
     _df.oe_from_date = _df.oe_from_date.apply(lambda x: dateutil.parser.parse(x).astimezone(tz=cet_tz))
     _df.from_date = _df.from_date.apply(lambda x: dateutil.parser.parse(x).astimezone(tz=cet_tz))
     if filter:
@@ -82,7 +82,7 @@ def get_next_lesson(file_path: str = None):
         preferred_lesson = {}
     # Load the lesson schedule "Sportfahrplan" and filter of the desired lesson
     sportfahrplan = get_sportfahrplan(filter=preferred_lesson)
-    # find the next lesson with free places you want to register for
+    # Find the next lesson with free places you want to register for
     sportfahrplan = sportfahrplan[sportfahrplan.places_free > 0]
     return sportfahrplan.iloc[0]
 
