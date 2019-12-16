@@ -148,7 +148,6 @@ def load_preferences(file_name: str):
 
 
 if __name__ == '__main__':
-    # TODO Store password using bcrypt: http://zetcode.com/python/bcrypt/
     # TODO Facilitate code structure
     driver = open_Firefox()
     driver.get('https://auth.asvz.ch/account/login')
@@ -200,10 +199,10 @@ if __name__ == '__main__':
         )
         sleep(waiting_period)
     
-    # TODO def register_for_lession(url, usr, pwd)
+    # TODO def register_for_lession(lession: pd.Series, usr, pwd)
     # Open browser in headless mode
     driver_options = Options()
-    # driver_options.add_argument('-headless')
+    driver_options.add_argument('-headless')
     driver = webdriver.Firefox(executable_path='geckodriver', options=driver_options)
     
     driver.get(next_lesson.url)
@@ -229,17 +228,10 @@ if __name__ == '__main__':
         login_button = driver.find_element_by_id('LoginButtonText')
         login_button.click()
 
-    # Wait until the registration is opened
-    # waiting_period = get_time_until(registration_time) + 2
-    # if waiting_period > 3:
-    #     print('Wait for {sec:.1f} minutes until registration'.format(sec=waiting_period))
-    #     sleep(waiting_period)
-    # else:
-    #     sleep(3)
-    # Finally, register for the lesson
+    print('Ready for registration.')
+    # Wait until the registration is opened and finally, register for the lesson
     lesson_login_button = WebDriverWait(driver, 60).until(
         EC.element_to_be_clickable((By.XPATH, '//*[@class="btn-primary btn enrollmentPlacePadding ng-star-inserted"]')))
-    # lesson_login_button = driver.find_element_by_id('btnRegister')
     lesson_login_button.click()
     # Quit browser
     driver.quit()
