@@ -7,6 +7,7 @@ from time import sleep
 import datetime
 import dateutil.parser
 import pytz
+import requests as re
 
 cet_tz = pytz.timezone('CET')
 
@@ -57,15 +58,16 @@ def get_credentials() -> list:
 
 
 def get_sportfahrplan(entries = 2000, filter=None) -> pd.DataFrame:
-    import requests as re
     # Specific search for Cycling classes
-    request = re.get('https://asvz.ch/asvz_api/event_search?_format=json&limit={e:d}'.format(e=entries))
-    results = request.json()['results']
+    _request = re.get('https://asvz.ch/asvz_api/event_search?_format=json&limit={e:d}'.format(e=entries))
+    _results = _request.json()['results']
     # TODO Reduce columns to the necessary ones
-    _df = pd.DataFrame(results)
+    _df = pd.DataFrame(_results)
     # Just export lessons which need a registration and are not cancelled
-    _df = _df[_df.cancelled == False]
-    _df = _df[_df.oe_enabled]
+    _df = _df[(_df.cancelled == False) &
+              (_df.oe_enabled) &
+              (_df.oe_from_date.notnull()) &
+              (_df.from_date.notnull())]
     # Format relevant times to CET
     _df.oe_from_date = _df.oe_from_date.apply(lambda x: dateutil.parser.parse(x).astimezone(tz=cet_tz))
     _df.from_date = _df.from_date.apply(lambda x: dateutil.parser.parse(x).astimezone(tz=cet_tz))
