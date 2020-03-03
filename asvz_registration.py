@@ -121,7 +121,7 @@ def get_lesson_info(s: pd.Series):
     string = '{sport:s} with {instr:s} on {d:d}.{m:d}.{y:d} at {hour:2d}:{minute:02d}h at {loc:s}.'
     sport = s.sport_name
     instructor = ' '
-    for name in [i.split(', ')[1] for i in s.instructor_name]:
+    for name in [i.split(' ')[0] for i in s.instructor_name]:
         instructor += name + '& '
     instructor = instructor[1:-2]
     location = s.location
@@ -212,9 +212,10 @@ if __name__ == '__main__':
     
     # TODO def register_for_lession(lession: pd.Series, usr, pwd)
     # Open browser in headless mode
-    driver_options = Options()
-    driver_options.add_argument('-headless')
-    driver = webdriver.Firefox(executable_path='geckodriver', options=driver_options)
+    # driver_options = Options()
+    # driver_options.add_argument('-headless')
+    # driver = webdriver.Firefox(executable_path='geckodriver', options=driver_options)
+    driver = open_Firefox()
     
     driver.get(next_lesson.url)
     login_button = WebDriverWait(driver, 60).until(
