@@ -9,8 +9,6 @@ import dateutil.parser
 import pytz
 import requests as re
 
-cet_tz = pytz.timezone('CET')
-
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import NoSuchElementException
@@ -18,20 +16,23 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+cet_tz = pytz.timezone('CET')
 
-def open_Firefox(headless=True):
-    driver_options = Options()
-    if headless: driver_options.add_argument('-headless')
-    return webdriver.Firefox(executable_path='geckodriver', options=driver_options)
+
+def open_firefox(headless=True):
+    _driver_options = Options()
+    if headless:
+        _driver_options.add_argument('-headless')
+    return webdriver.Firefox(executable_path='geckodriver', options=_driver_options)
 
 
 # TODO Rename to enter_credentials
 def get_credentials() -> list:
-    from getpass import getpass 
+    from getpass import getpass
     print('Enter data of the user to register!')
-    usr = input('Enter username: ')
-    pwd = getpass('Enter password: ')
-    return [usr, pwd]
+    _usr = input('Enter username: ')
+    _pwd = getpass('Enter password: ')
+    return [_usr, _pwd]
 
 
 # TODO implement correctness check
@@ -57,7 +58,7 @@ def get_credentials() -> list:
 #     login_button.click()  
 
 
-def get_sportfahrplan(entries = 2000, filter=None) -> pd.DataFrame:
+def get_sportfahrplan(entries=2000, filter=None) -> pd.DataFrame:
     # Specific search for Cycling classes
     _request = re.get('https://asvz.ch/asvz_api/event_search?_format=json&limit={e:d}'.format(e=entries))
     _results = _request.json()['results']
@@ -65,28 +66,25 @@ def get_sportfahrplan(entries = 2000, filter=None) -> pd.DataFrame:
     _df = pd.DataFrame(_results)
     # Just export lessons which need a registration and are not cancelled
     _df = _df[(_df.cancelled == False) &
-              (_df.oe_enabled) &
+              _df.oe_enabled &
               (_df.oe_from_date.notnull()) &
               (_df.from_date.notnull())]
     # Format relevant times to CET
     _df.oe_from_date = _df.oe_from_date.apply(lambda x: dateutil.parser.parse(x).astimezone(tz=cet_tz))
     _df.from_date = _df.from_date.apply(lambda x: dateutil.parser.parse(x).astimezone(tz=cet_tz))
     if filter:
-        _df = filter_sportfahrplan(_df, filter)   
+        _df = filter_sportfahrplan(_df, filter)
     return _df.sort_values(by='oe_from_date', ascending=True)
 
 
-def get_next_lesson(file_path: str = None):
-    # Preferred lesson: Dictionary with filters
-    if file_path:
-        preferred_lesson = load_preferences(sys.argv[1])
-    else:
-        preferred_lesson = {}
+def get_next_lesson(filter: dict = None):
     # Load the lesson schedule "Sportfahrplan" and filter of the desired lesson
-    sportfahrplan = get_sportfahrplan(filter=preferred_lesson)
+    if filter is None:
+        filter = {}
+    _sportfahrplan = get_sportfahrplan(filter=filter)
     # Find the next lesson with free places you want to register for
-    sportfahrplan = sportfahrplan[sportfahrplan.places_free > 0]
-    return sportfahrplan.iloc[0]
+    _sportfahrplan = _sportfahrplan[_sportfahrplan.places_free > 0]
+    return _sportfahrplan.iloc[0]
 
 
 def filter_sportfahrplan(_df, _filter) -> pd.DataFrame:
@@ -109,7 +107,7 @@ def filter_sportfahrplan(_df, _filter) -> pd.DataFrame:
     if 'instructor' in _filter.keys():
         if _filter['instructor']:
             _df = _df[_df.instructor_name.notna()]
-            _df = _df[_df.instructor_name.apply(lambda x: x == _filter['instructor'])]  
+            _df = _df[_df.instructor_name.apply(lambda x: x == _filter['instructor'])]
 
     if 'location' in _filter.keys():
         if _filter['location']:
@@ -135,19 +133,50 @@ def get_lesson_info(s: pd.Series):
 
 
 def get_time_until(t) -> int:
-    time_now = datetime.datetime.now(tz=cet_tz)
-    waiting_period = (t - time_now).total_seconds()
-    return waiting_period
+    _time_now = datetime.datetime.now(tz=cet_tz)
+    _waiting_period = (t - _time_now).total_seconds()
+    return _waiting_period
 
 
-def load_preferences(file_name: str):
+def load_preferences(file_name: str) -> dict:
     with open(file_name, 'r') as file:
-        dict_ = json.load(file)
-    if 'time' in dict_.keys():
-        if dict_['time']:
-            hour, minute = dict_['time'].split(':')
-            dict_['time'] = datetime.time(int(hour), int(minute), tzinfo=cet_tz)
-    return dict_
+        _dict = json.load(file)
+    if 'time' in _dict.keys():
+        if _dict['time']:
+            hour, minute = _dict['time'].split(':')
+            _dict['time'] = datetime.time(int(hour), int(minute), tzinfo=cet_tz)
+    return _dict
+
+
+def make_preferences(argv: list) -> dict:
+    _dict = {"title": None, "sport": "Cycling Class", "weekday": None, "time": None, "instructor": [],
+             "location": "Sport Center Polyterrasse"}
+    weekday: str = argv[1].lower()
+    if weekday == 'mon':
+        _dict['weekday'] = 0
+    elif weekday == 'tue':
+        _dict['weekday'] = 1
+    elif weekday == 'wed':
+        _dict['weekday'] = 2
+    elif weekday == 'thu':
+        _dict['weekday'] = 3
+    elif weekday == 'fri':
+        _dict['weekday'] = 4
+    elif weekday == 'sat':
+        _dict['weekday'] = 5
+    elif weekday == 'sun':
+        _dict['weekday'] = 6
+    else:
+        raise IOError
+
+    _day_time = argv[2]
+    if ':' in _day_time:
+        hour, minute = argv[2].split(':')
+    else:
+        hour, minute = _day_time[:-2], _day_time[2:]
+    _dict['time'] = datetime.time(int(hour), int(minute), tzinfo=cet_tz)
+
+    return _dict
 
 
 # TODO def main():
@@ -161,9 +190,9 @@ def load_preferences(file_name: str):
 if __name__ == '__main__':
     # TODO Change all dates to Timezone Europe/Rome for convenience
     # TODO Facilitate code structure
-    driver = open_Firefox()
+    driver = open_firefox()
     driver.get('https://auth.asvz.ch/account/login')
-    switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]') 
+    switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]')
     switchAai_button.click()
 
     # Skip if the selection of the institution is saved in the browser's chache
@@ -173,7 +202,7 @@ if __name__ == '__main__':
         input_box.send_keys('ETH Zurich')
         send_button = driver.find_element_by_name('Select')
         send_button.click()
-    
+
     while True:
         # Enter username and password of the user to register
         usr, pwd = get_credentials()
@@ -193,9 +222,15 @@ if __name__ == '__main__':
             print('Authentication successfully checked!')
             driver.quit()
             break
-
+    # Preferred lesson: Dictionary with filters
+    if len(sys.argv) == 2:
+        lesson_filter = load_preferences(sys.argv[1])
+    elif len(sys.argv) == 3:
+        lesson_filter = make_preferences(sys.argv)
+    else:
+        lesson_filter = {}
     try:
-        next_lesson = get_next_lesson(sys.argv[1])
+        next_lesson = get_next_lesson(lesson_filter)
     except IndexError:
         next_lesson = get_next_lesson()
     get_lesson_info(next_lesson)
@@ -206,24 +241,24 @@ if __name__ == '__main__':
     if waiting_period > 0:
         print(
             'Wait for {h:.0f}h {m:.0f}m {s:.0f}s until login'
-            .format(h=waiting_period/60//60, m=waiting_period/60%60, s=waiting_period%60)
+                .format(h=waiting_period / 60 // 60, m=waiting_period / 60 % 60, s=waiting_period % 60)
         )
         sleep(waiting_period)
-    
+
     # TODO def register_for_lession(lession: pd.Series, usr, pwd)
     # Open browser in headless mode
     # driver_options = Options()
     # driver_options.add_argument('-headless')
     # driver = webdriver.Firefox(executable_path='geckodriver', options=driver_options)
-    driver = open_Firefox()
-    
+    driver = open_firefox()
+
     driver.get(next_lesson.url)
     login_button = WebDriverWait(driver, 60).until(
         EC.element_to_be_clickable((By.XPATH, '//*[@class="btn btn-default ng-star-inserted"]')))
     if login_button.text == "LOGIN":
         login_button.click()
         # Select identification via Switch Aai
-        switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]') 
+        switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]')
         switchAai_button.click()
         # Skip if the selection of saved in the browser's chache
         if driver.current_url.startswith('https://wayf.switch.ch/'):
