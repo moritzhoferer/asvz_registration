@@ -43,7 +43,7 @@ def get_credentials() -> list:
 #     _driver.get(asvz_login_url)
 #     switchAai_button = _driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]') 
 #     switchAai_button.click()
-#     # This can be skipped if the university is saved in the browser's chache
+#     # This can be skipped if the university is saved in the browser's cache
 #     if _driver.current_url.startswith('https://wayf.switch.ch/'):
 #         # Select institution to get to ETH Login
 #         input_box = _driver.find_element_by_id('userIdPSelection_iddtext')
@@ -65,7 +65,7 @@ def get_sportfahrplan(entries=2000, filter_=None) -> pd.DataFrame:
     # TODO Reduce columns to the necessary ones
     _df = pd.DataFrame(_results)
     # Just export lessons which need a registration and are not cancelled
-    _df = _df[(_df.cancelled is False) &
+    _df = _df[(_df.cancelled == False) &
               _df.oe_enabled &
               (_df.oe_from_date.notnull()) &
               (_df.from_date.notnull())]
