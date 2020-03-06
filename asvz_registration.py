@@ -272,8 +272,11 @@ if __name__ == '__main__':
 
     print('Ready for registration.')
     # Wait until the registration is opened and finally, register for the lesson
-    lesson_login_button = WebDriverWait(driver, 60).until(
-        ec.element_to_be_clickable((By.XPATH, '//*[@class="btn-primary btn enrollmentPlacePadding ng-star-inserted"]')))
+    wait = WebDriverWait(driver, 60, poll_frequency=.05)
+    lesson_login_button = wait.until(
+        ec.element_to_be_clickable((By.XPATH, '//*[@class="btn-primary btn enrollmentPlacePadding ng-star-inserted"]'))
+    )
     lesson_login_button.click()
+    print('Registration successfully completed.')
     # Quit browser
     driver.quit()
