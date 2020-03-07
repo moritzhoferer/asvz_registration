@@ -9,15 +9,16 @@ The registration procedure should be rethought.
 First build your own file which stores your preferences.
 The file has format like the snippet below.
 The snippet shows all possible filters. If one filter is not needed it either can be deleted or set to `null`.
+Weekdays are number form 0 (Monday) to 6 (Sunday).
 
 ```json
 {
-    "title": '30min HIT-Training',  # Title
-    "sport": 'Cycling Class',  # Sport
-    "weekday": 1,  # Monday: 0, Tuesday: 1, ..., Sunday: 6
-    "time": "hh:mm",  # Hour:minute
-    "instructor": ['Surname, Name'], # ['Surname, Name']
-    "location": 'Sport Center Polyterrasse' # Location
+    "title": "30min HIT-Training",
+    "sport": "Cycling Class",
+    "weekday": 1,
+    "time": "hh:mm",
+    "instructor": ["Name Surname"],
+    "location": "Sport Center Polyterrasse"
 }
 ```
 The start the program with the json file storing your preference `python3 asvz_registration.py preferences.json`.
