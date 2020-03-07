@@ -26,8 +26,7 @@ def open_firefox(headless=True):
     return webdriver.Firefox(executable_path='geckodriver', options=_driver_options)
 
 
-# TODO Rename to enter_credentials
-def get_credentials() -> list:
+def enter_credentials() -> list:
     from getpass import getpass
     print('Enter data of the user to register!')
     _usr = input('Enter username: ')
@@ -115,7 +114,7 @@ def filter_sportfahrplan(df, filter_) -> pd.DataFrame:
     return df
 
 
-def get_lesson_info(s: pd.Series):
+def print_lesson_info(s: pd.Series) -> None:
     string = '{sport:s} with {instr:s} on {d:d}.{m:d}.{y:d} at {hour:2d}:{minute:02d}h at {loc:s}.'
     sport = s.sport_name
     instructor = ' '
@@ -188,7 +187,6 @@ def make_preferences(argv: list) -> dict:
 
 
 if __name__ == '__main__':
-    # TODO Change all dates to Timezone Europe/Rome for convenience
     # TODO Facilitate code structure
     driver = open_firefox()
     driver.get('https://auth.asvz.ch/account/login')
@@ -205,7 +203,7 @@ if __name__ == '__main__':
 
     while True:
         # Enter username and password of the user to register
-        usr, pwd = get_credentials()
+        usr, pwd = enter_credentials()
         # Enter credentials
         user_box = driver.find_element_by_id('username')
         user_box.clear()
@@ -222,6 +220,7 @@ if __name__ == '__main__':
             print('Authentication successfully checked!')
             driver.quit()
             break
+
     # Preferred lesson: Dictionary with filters
     if len(sys.argv) == 2:
         lesson_filter = load_preferences(sys.argv[1])
@@ -233,7 +232,7 @@ if __name__ == '__main__':
         next_lesson = get_next_lesson(lesson_filter)
     except IndexError:
         next_lesson = get_next_lesson()
-    get_lesson_info(next_lesson)
+    print_lesson_info(next_lesson)
     registration_time = next_lesson.oe_from_date.astimezone(tz=cet_tz)
 
     # Wait until 1 minute before the registration opens to start with login
