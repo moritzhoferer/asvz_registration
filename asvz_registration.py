@@ -10,7 +10,6 @@ import pytz
 import requests as re
 
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -20,10 +19,19 @@ cet_tz = pytz.timezone('CET')
 
 
 def open_firefox(headless=True):
+    from selenium.webdriver.firefox.options import Options
     _driver_options = Options()
     if headless:
         _driver_options.add_argument('-headless')
     return webdriver.Firefox(executable_path='geckodriver', options=_driver_options)
+
+
+def open_chrome(headless=True):
+    from selenium.webdriver.chrome.options import Options
+    _driver_options = Options()
+    if headless:
+        _driver_options.add_argument('-headless')
+    return webdriver.Chrome(executable_path='chromedriver', options=_driver_options)
 
 
 def enter_credentials() -> list:
@@ -188,7 +196,7 @@ def make_preferences(argv: list) -> dict:
 
 if __name__ == '__main__':
     # TODO Facilitate code structure
-    driver = open_firefox()
+    driver = open_chrome()
     driver.get('https://auth.asvz.ch/account/login')
     switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]')
     switchAai_button.click()
@@ -245,7 +253,7 @@ if __name__ == '__main__':
         sleep(waiting_period)
 
     # TODO def register_for_lesson(lesson: pd.Series, usr, pwd)
-    driver = open_firefox()
+    driver = open_chrome()
     driver.get(next_lesson.url)
     login_button = WebDriverWait(driver, 60).until(
         ec.element_to_be_clickable((By.XPATH, '//*[@class="btn btn-default ng-star-inserted"]')))
