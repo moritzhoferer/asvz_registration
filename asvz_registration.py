@@ -19,6 +19,7 @@ cet_tz = pytz.timezone('CET')
 
 
 def open_firefox(headless=True):
+    print('Opening Firefox...')
     from selenium.webdriver.firefox.options import Options
     _driver_options = Options()
     if headless:
@@ -27,6 +28,7 @@ def open_firefox(headless=True):
 
 
 def open_chrome(headless=True):
+    print('Opening Chrome...')
     from selenium.webdriver.chrome.options import Options
     _driver_options = Options()
     if headless:
