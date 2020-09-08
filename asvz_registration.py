@@ -158,9 +158,17 @@ def load_preferences(file_name: str) -> dict:
 
 
 def make_preferences(argv: list) -> dict:
-    _dict = {"title": None, "sport": "Cycling Class", "weekday": None, "time": None, "instructor": [],
-             "location": "Sport Center Polyterrasse"}
-    weekday: str = argv[1].lower()
+    _dict = {"title": None, "sport": None, "weekday": None, "time": None, "instructor": [],
+             "location": None}
+    
+    _dict["sport"] = argv[1]
+    if _dict["sport"] == "Cycling Class":
+        _dict["location"] = "Sport Center Polyterrasse"
+
+    if _dict["sport"] == "Rennvelo":
+        _dict["title"] = "Treff"
+    
+    weekday: str = argv[2].lower()
     if weekday == 'mon':
         _dict['weekday'] = 0
     elif weekday == 'tue':
@@ -178,9 +186,9 @@ def make_preferences(argv: list) -> dict:
     else:
         raise IOError
 
-    _day_time = argv[2]
+    _day_time = argv[3]
     if ':' in _day_time:
-        _hour, _minute = argv[2].split(':')
+        _hour, _minute = _day_time
     else:
         _hour, _minute = _day_time[:-2], _day_time[2:]
     _dict['time'] = datetime.time(int(_hour), int(_minute), tzinfo=cet_tz)
@@ -198,7 +206,7 @@ def make_preferences(argv: list) -> dict:
 
 if __name__ == '__main__':
     # TODO Facilitate code structure
-    driver = open_chrome()
+    driver = open_chrome(headless=False)
     driver.get('https://auth.asvz.ch/account/login')
     switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]')
     switchAai_button.click()
@@ -220,7 +228,8 @@ if __name__ == '__main__':
         user_box.send_keys(usr)
         password_box = driver.find_element_by_id('password')
         password_box.send_keys(pwd)
-        login_button = driver.find_element_by_id('LoginButtonText')
+        # login_button = driver.find_element_by_id('LoginButtonText')
+        login_button = driver.find_element_by_name('_eventId_proceed')
         login_button.click()
 
         try:
@@ -234,7 +243,7 @@ if __name__ == '__main__':
     # Preferred lesson: Dictionary with filters
     if len(sys.argv) == 2:
         lesson_filter = load_preferences(sys.argv[1])
-    elif len(sys.argv) == 3:
+    elif len(sys.argv) == 4:
         lesson_filter = make_preferences(sys.argv)
     else:
         lesson_filter = {}
@@ -279,7 +288,8 @@ if __name__ == '__main__':
         user_box.send_keys(usr)
         password_box = driver.find_element_by_id('password')
         password_box.send_keys(pwd)
-        login_button = driver.find_element_by_id('LoginButtonText')
+        # login_button = driver.find_element_by_id('LoginButtonText')
+        login_button = driver.find_element_by_name('_eventId_proceed')
         login_button.click()
 
     print('Ready for registration.')
