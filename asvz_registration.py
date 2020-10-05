@@ -127,10 +127,13 @@ def filter_sportfahrplan(df, filter_) -> pd.DataFrame:
 def print_lesson_info(s: pd.Series) -> None:
     string = '{sport:s} with {instr:s} on {d:d}.{m:d}.{y:d} at {hour:2d}:{minute:02d}h at {loc:s}.'
     sport = s.sport_name
-    instructor = ' '
-    for name in [i.split(' ')[0] for i in s.instructor_name]:
-        instructor += name + ' & '
-    instructor = instructor[1:-3]
+    try:
+        instructor = ' '
+        for name in [i.split(' ')[0] for i in s.instructor_name]:
+            instructor += name + ' & '
+        instructor = instructor[1:-3]
+    except TypeError:
+        instructor = "Unknown"
     location = s.location
     day = s.from_date.day
     month = s.from_date.month
