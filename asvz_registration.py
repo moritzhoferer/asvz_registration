@@ -206,7 +206,7 @@ def make_preferences(argv: list) -> dict:
 
 if __name__ == '__main__':
     # TODO Facilitate code structure
-    driver = open_chrome(headless=False)
+    driver = open_firefox(headless=True)
     driver.get('https://auth.asvz.ch/account/login')
     switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]')
     switchAai_button.click()
@@ -264,7 +264,7 @@ if __name__ == '__main__':
         sleep(waiting_period)
 
     # TODO def register_for_lesson(lesson: pd.Series, usr, pwd)
-    driver = open_chrome()
+    driver = open_firefox()
     wait_slow = WebDriverWait(driver, 90, poll_frequency=.1)
     driver.get(next_lesson.url)
     login_button = wait_slow.until(
