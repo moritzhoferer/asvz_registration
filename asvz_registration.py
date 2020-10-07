@@ -167,9 +167,10 @@ def make_preferences(argv: list) -> dict:
     _dict["sport"] = argv[1]
     if _dict["sport"] == "Cycling Class":
         _dict["location"] = "Sport Center Polyterrasse"
-
-    if _dict["sport"] == "Rennvelo":
+    elif _dict["sport"] == "Rennvelo":
         _dict["title"] = "Treff"
+    else:
+        raise IOError
     
     weekday: str = argv[2].lower()
     if weekday == 'mon':
@@ -191,7 +192,7 @@ def make_preferences(argv: list) -> dict:
 
     _day_time = argv[3]
     if ':' in _day_time:
-        _hour, _minute = _day_time
+        _hour, _minute = _day_time.split(':')
     else:
         _hour, _minute = _day_time[:-2], _day_time[2:]
     _dict['time'] = datetime.time(int(_hour), int(_minute), tzinfo=cet_tz)
