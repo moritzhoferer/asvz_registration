@@ -161,10 +161,8 @@ def load_preferences(file_name: str) -> dict:
 
 
 def make_preferences(argv: list) -> dict:
-    _dict = {"title": None, "sport": None, "weekday": None, "time": None, "instructor": [],
-             "location": None}
-    
-    _dict["sport"] = argv[1]
+    _dict = {"title": None, "sport": argv[1], "weekday": None, "time": None, "instructor": [], "location": None}
+
     if _dict["sport"] == "Cycling Class":
         _dict["location"] = "Sport Center Polyterrasse"
 
