@@ -165,9 +165,10 @@ def make_preferences(argv: list) -> dict:
 
     if _dict["sport"] == "Cycling Class":
         _dict["location"] = "Sport Center Polyterrasse"
-
-    if _dict["sport"] == "Rennvelo":
+    elif _dict["sport"] == "Rennvelo":
         _dict["title"] = "Treff"
+    else:
+        raise IOError
     
     weekday: str = argv[2].lower()
     if weekday == 'mon':
@@ -189,7 +190,7 @@ def make_preferences(argv: list) -> dict:
 
     _day_time = argv[3]
     if ':' in _day_time:
-        _hour, _minute = _day_time
+        _hour, _minute = _day_time.split(':')
     else:
         _hour, _minute = _day_time[:-2], _day_time[2:]
     _dict['time'] = datetime.time(int(_hour), int(_minute), tzinfo=cet_tz)
@@ -208,8 +209,6 @@ def make_preferences(argv: list) -> dict:
 if __name__ == '__main__':
     # TODO Facilitate code structure
     driver = open_firefox(headless=True)
-    wait_slow = WebDriverWait(driver, 90, poll_frequency=.1)
-    wait_quick = WebDriverWait(driver, 90, poll_frequency=.005)
     driver.get('https://auth.asvz.ch/account/login')
     switchAai_button = driver.find_element_by_xpath('//*[@title="SwitchAai Account Login"]')
     switchAai_button.click()
@@ -226,6 +225,7 @@ if __name__ == '__main__':
         # Enter username and password of the user to register
         usr, pwd = enter_credentials()
         # Enter credentials
+        wait_slow = WebDriverWait(driver, 90, poll_frequency=.1)
         user_box = wait_slow.until(
             ec.element_to_be_clickable((By.ID, 'username'))
         )
@@ -271,6 +271,7 @@ if __name__ == '__main__':
     # TODO def register_for_lesson(lesson: pd.Series, usr, pwd)
     driver = open_firefox()
     driver.get(next_lesson.url)
+    wait_slow = WebDriverWait(driver, 90, poll_frequency=.1)
     login_button = wait_slow.until(
         ec.element_to_be_clickable((By.XPATH, '//*[@class="btn btn-default ng-star-inserted"]')))
     if login_button.text == "LOGIN":
@@ -300,6 +301,7 @@ if __name__ == '__main__':
 
     print('Ready for registration.')
     # Wait until the registration is opened and finally, register for the lesson
+    wait_quick = WebDriverWait(driver, 90, poll_frequency=.005)
     lesson_login_button = wait_quick.until(
         ec.element_to_be_clickable((By.XPATH, '//*[@class="btn-primary btn enrollmentPlacePadding ng-star-inserted"]'))
     )
