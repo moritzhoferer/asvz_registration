@@ -31,7 +31,7 @@ For Cycling classes at Polyterrasse, you also can start the program for a weekda
 
 ## Setup
 
-First install the Firefox browser and geckodriver for Firefox. I recommend to setup a python environment like
+First install the [Firefox browser](https://www.mozilla.org/en-US/firefox/new/) and [geckodriver for Firefox](https://github.com/mozilla/geckodriver/releases). I recommend to setup a python environment named "venv" in the directory of the repository with
 
 ```{bash}
 python3 -m venv venv
