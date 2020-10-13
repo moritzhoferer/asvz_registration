@@ -41,6 +41,6 @@ python -m pip install -r requirements.txt
 
 ## TODOs
 
-* [] Clean the code and put everything into functions.
-* [] *Maybe:* Adapt to other logins.
-* [] Interactive Input to select a class.
+* [ ] Clean the code and put everything into functions.
+* [ ] *Maybe:* Adapt to other logins.
+* [ ] Interactive Input to select a class.
