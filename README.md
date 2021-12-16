@@ -2,7 +2,7 @@
 
 This tool allows you to automatically register for your favorite ASVZ lesson when the registration period opens. This is especially helpful for highly demanded lessons, like indoor cycling classes.
 
-Note that the script does not save any data or passwords
+Note that the script does not save any data or passwords.
 
 ## Why?
 
