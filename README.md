@@ -7,7 +7,7 @@ Note that the script does not save any data or passwords.
 ## Why?
 
 [ASVZ](https://asvz.ch/) is the academic sports association of the universities in Zurich.
-The registration procedure should be rethought, because its already a competition to register for a popular class because the registration works by first-come-first-serve. Popular classes are booked out in seconds. As an example: If someone has to work in a restaurant at a given time to finance their studies, they do not have time to look at their smartphone at a specific time to register. Many students programmed bots and made it harder to register. These people have an clear advantage. 
+The registration procedure should be rethought, because its already a competition to register for a popular class because the registration works by first-come-first-serve. Popular classes are booked out in seconds. As an example: If someone has to work in a restaurant at a given time to finance their studies, they do not have time to look at their smartphone at a specific time to register. Many students programmed bots and made it harder to register. These people have an clear advantage.
 
 My suggestion is opened earlier (36 hours before the class) and the registrations of the first 12 hours are distributed randomly? If there are still places available after that, it is first come, first serve. Wouldn't that be fairer?
 
