@@ -51,3 +51,5 @@ python -m pip install -r requirements.txt
 * [ ] Interactive Input to select a class.
 * [ ] Clean the code and put everything into functions.
 * [ ] *Maybe:* Adapt to other logins.
+* [ ] Look into [bcrypt](https://pypi.org/project/bcrypt/)
+* [ ] Other logins
